@@ -37,15 +37,16 @@ app.get("/urls", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  // res.send("Ok");         // Respond with 'Ok' (we will replace this)
   
-
   let newKey = generateRandomString();
   
   // urlDatabase[generateRandomString()] = req.body;
   urlDatabase[newKey] = req.body.longURL;
 
   console.log(urlDatabase[newKey]);
+  res.redirect("/urls/" + newKey);         // Respond with 'Ok' (we will replace this)
+
 });
 
 app.get("/urls.json", (req, res) => {
@@ -63,6 +64,13 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  // let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  // res.render("urls_show", templateVars);
+  const UID = req.params.shortURL;
+  res.redirect(urlDatabase[UID]);         // Respond with 'Ok' (we will replace this)
 });
 
 app.listen(PORT, () => {
