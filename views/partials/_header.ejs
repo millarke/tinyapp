@@ -13,9 +13,9 @@
         <!-- <form class="form-inline" action="/login" method="POST" ></form> -->
           <div class="form-group mb-2">
             <!-- <label for="login">username</label> -->
-            <% if (username) { %>
+            <% if (userObject) { %>
               <form class="form-inline" action="/logout" method="POST" >
-              <a>Logged in as: <%= username %> </a>
+              <a>Logged in as: <%= userObject.email %> </a>
               <button type="submit" class="btn btn-primary">Logout</button> 
               </form>
             <% } else { %>
