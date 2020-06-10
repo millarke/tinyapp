@@ -11,6 +11,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
+
 // needs to come before all the routes
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -88,6 +101,16 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.post("/register", (req, res) => {
+  let newUID = generateRandomString();
+  users[newUID] = { id: newUID, email: req.body['email'], password: req.body['password'] };
+  res.cookie('user_id', newUID);
+  // res.cookie(newUID, users[newUID]);
+  console.log(users);
+  console.log("hello");
+  res.redirect('/urls');
+});
+
 app.get("/register", (req, res) => {
   let templateVars = { email: req.cookies['email'], password: req.cookies['password'], username: req.cookies['username']  };
   res.render("register", templateVars);
@@ -98,6 +121,7 @@ app.get("/u/:shortURL", (req, res) => {
   // res.render("urls_show", templateVars);
   const UID = req.params.shortURL;
   res.redirect(urlDatabase[UID]);         // Respond with 'Ok' (we will replace this)
+
 });
 
 app.listen(PORT, () => {
