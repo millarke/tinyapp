@@ -78,14 +78,19 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = { username: username };
+  let templateVars = { username: req.cookies['username'] };
 
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: username };
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies['username'] };
   res.render("urls_show", templateVars);
+});
+
+app.get("/register", (req, res) => {
+  let templateVars = { email: req.cookies['email'], password: req.cookies['password'], username: req.cookies['username']  };
+  res.render("register", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
