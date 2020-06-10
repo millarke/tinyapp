@@ -12,7 +12,6 @@
 <body>
   <main style="margin: 1em;">
     <h3>My URLs</h3>
-    <div><%= myString %></div>
     <table class="table">
       <thead>
         <tr>
@@ -25,6 +24,13 @@
           <tr>
             <td><%= url %></td>
             <td><%= urls[url] %></td>
+            <form method="GET" action="/urls/<%=url%>">
+            <td><button type="edit" class="btn btn-primary">Edit</button></td>
+            </form>
+            <form method="POST" action="/urls/<%=url%>/delete">
+            <td><button type="delete" class="btn btn-primary">Delete</button></td>
+            <!-- <td><form method="POST" action="/urls/9sm5xK/delete"><button type="delete" class="btn btn-primary">Delete</button></form></td> -->
+            </form>
           </tr>
         <% } %>
       </tbody>

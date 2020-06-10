@@ -30,23 +30,30 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let myString = "hello world";
-  let templateVars = { urls: urlDatabase, myString};
+  // let myString = "hello world";
+  let templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
-  // res.send("Ok");         // Respond with 'Ok' (we will replace this)
-  
   let newKey = generateRandomString();
-  
   // urlDatabase[generateRandomString()] = req.body;
   urlDatabase[newKey] = req.body.longURL;
-
-  console.log(urlDatabase[newKey]);
+  // console.log(urlDatabase[newKey]);
   res.redirect("/urls/" + newKey);         // Respond with 'Ok' (we will replace this)
+});
 
+app.post("/urls/:shortURL", (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  // req.params.shortURL =;
+  res.redirect("/urls");
+  // res.redirect("/urls/:shortURL");
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
 });
 
 app.get("/urls.json", (req, res) => {
