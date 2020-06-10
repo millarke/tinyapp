@@ -38,7 +38,6 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
-
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -57,8 +56,6 @@ app.post("/urls", (req, res) => {
   // console.log(urlDatabase[newKey]);
   res.redirect("/urls/" + newKey);         // Respond with 'Ok' (we will replace this)
 });
-
-
 
 app.post("/urls/:shortURL", (req, res) => {
   urlDatabase[req.params.shortURL] = req.body.longURL;
