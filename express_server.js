@@ -2,6 +2,7 @@ const express = require("express");
 const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080; // default port 8080
+let username;
 
 app.set("view engine", "ejs");
 app.use(cookieParser());
@@ -24,21 +25,17 @@ const users = {
   }
 };
 
-
-
 // needs to come before all the routes
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 // Consider creating an email lookup helper function to keep your code DRY
-
 const checkIfEmailExists = function(emailToCheck) {
   for (let UID in users) {
-    console.log(UID);
-    console.log(users[UID].email);
-    console.log(users[UID]['email']);
+    // console.log(UID);
+    // console.log(users[UID].email);
+    // console.log(users[UID]['email']);
     if (emailToCheck === users[UID]['email']) {
-     
       return true;
     }
   }
@@ -55,13 +52,22 @@ const generateRandomString = function() {
   return UID;
 };
 
-let username;
-
 app.post("/login", (req, res) => {
-  username = req.body.username;
-  res.cookie('username', username);
-  res.redirect("/urls");
+  // username = req.body.username;
+  // res.cookie('username', username);
+
+
+  res.redirect("/login");
 });
+
+app.get("/login", (req, res) => {
+
+
+
+  let templateVars = { urls: urlDatabase, userObject: users[req.cookies['user_id']] };
+  res.render("login", templateVars);
+});
+
 
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id');
@@ -146,6 +152,8 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+// app.post("/login");
+
 app.get("/u/:shortURL", (req, res) => {
   // let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   // res.render("urls_show", templateVars);
@@ -153,6 +161,8 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(urlDatabase[UID]);         // Respond with 'Ok' (we will replace this)
 
 });
+
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

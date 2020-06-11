@@ -19,10 +19,25 @@
               <button type="submit" class="btn btn-primary">Logout</button> 
               </form>
             <% } else { %>
-            <form class="form-inline" action="/login" method="POST" >
-            <input class="form-control" type="text" name="username" placeholder="username" style="width: 300px; margin: 1em">
-            <button type="submit" class="btn btn-primary">Login</button>
-            </form>
+            <!-- <form class="form-inline" action="/login" method="POST" > -->
+            <!-- <input class="form-control" type="text" name="username" placeholder="username" style="width: 300px; margin: 1em"> -->
+            <!-- <button type="submit" class="btn btn-primary" href="/login">Login</button>
+            
+            <form action="/login">
+              <input type="submit" value="login" />
+            </form>  -->
+
+            <button type="button" class="btn btn-primary" value="login" title="login" onclick="location.href='/login'">Login</button>
+
+
+            <!-- </form> -->
+            <!-- <form class="form-inline" action="/register" method="POST" > -->
+              <!-- <input class="form-control" type="text" name="username" placeholder="username" style="width: 300px; margin: 1em"> -->
+              <!-- <button type="submit" class="btn btn-primary" href="/register">register</button> -->
+
+            <button type="button" class="btn btn-primary" value="register" title="register" onclick="location.href='/register'">register</button>
+
+              <!-- </form> -->
             <% } %>
 
           </div>
