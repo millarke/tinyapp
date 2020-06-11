@@ -24,9 +24,26 @@ const users = {
   }
 };
 
+
+
 // needs to come before all the routes
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
+
+// Consider creating an email lookup helper function to keep your code DRY
+
+const checkIfEmailExists = function(emailToCheck) {
+  for (let UID in users) {
+    console.log(UID);
+    console.log(users[UID].email);
+    console.log(users[UID]['email']);
+    if (emailToCheck === users[UID]['email']) {
+     
+      return true;
+    }
+  }
+  return false;
+};
 
 // generates an alphanumeric string 6 characters long
 const generateRandomString = function() {
@@ -102,12 +119,25 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  if (req.body['email'] === "" || req.body['password'] === "") {
+    res.statusCode = 400;
+    res.end("400 Missing Email");
+    // res.status(400).send("400 Missing Info");
+    return;
+  }
+  const doesEmailExist = checkIfEmailExists(req.body['email']);
+
+  if (doesEmailExist) {
+    // res.status(400).send("400 User already exists!");
+    res.statusCode = 400;
+    res.end("400 User already exists");
+    return;
+  }
+
   let newUID = generateRandomString();
   users[newUID] = { id: newUID, email: req.body['email'], password: req.body['password'] };
   res.cookie('user_id', newUID);
   // res.cookie(newUID, users[newUID]);
-  console.log(users);
-  console.log("hello");
   res.redirect('/urls');
 });
 
