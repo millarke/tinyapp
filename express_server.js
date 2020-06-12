@@ -121,9 +121,6 @@ app.post("/login", (req, res) => {
       return;
     }
   }
-  // else {
-  //   console.log("this email does NOT exist");
-  // }
 
   if (!checkIfEmailExists(req.body.email)) {
     // res.status(400).send("400 User already exists!");
@@ -147,33 +144,21 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
+//------------ URLS --------------
+
 app.get("/urls", (req, res) => {
-  // let myString = "hello world";
   let templateVars = { urls: urlDatabase, userObject: users[req.cookies['user_id']] };
   res.render("urls_index", templateVars);
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
+  // console.log(req.body);
   let newKey = generateRandomString();
-  // urlDatabase[generateRandomString()] = req.body;
   urlDatabase[newKey] = req.body.longURL;
-  // console.log(urlDatabase[newKey]);
   res.redirect("/urls/" + newKey);
 });
 
-app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-  res.redirect("/urls");
-});
-
-app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
-});
-
-
-
+//-------- Create New ShortURL ---------
 
 app.get("/urls/new", (req, res) => {
   let templateVars = { userObject: users[req.cookies['user_id']] };
@@ -181,18 +166,31 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+
+//--------- ShortURL Edit Page -------------
+
+app.post("/urls/:shortURL", (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  res.redirect("/urls");
+});
+
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], userObject: users[req.cookies['user_id']] };
   res.render("urls_show", templateVars);
 });
 
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
+});
+
+//------- Redirect Link ----------
 
 app.get("/u/:shortURL", (req, res) => {
   // let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   // res.render("urls_show", templateVars);
   const UID = req.params.shortURL;
   res.redirect(urlDatabase[UID]);         // Respond with 'Ok' (we will replace this)
-
 });
 
 
