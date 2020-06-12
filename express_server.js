@@ -2,16 +2,21 @@ const express = require("express");
 const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080; // default port 8080
-let username;
 
+// needs to come before all the routes
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 app.use(cookieParser());
 
+//----------- URL "Database" ----------
+// object contains the shortURL as the key for the longURL
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
+//-------- Users "Database" -----------
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -25,16 +30,12 @@ const users = {
   }
 };
 
-// needs to come before all the routes
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
+//---------- Helper Functions -----------
+// should I move this to a new file?
 
-// Consider creating an email lookup helper function to keep your code DRY
+// checks to see if email exists
 const checkIfEmailExists = function(emailToCheck) {
   for (let UID in users) {
-    // console.log(UID);
-    // console.log(users[UID].email);
-    // console.log(users[UID]['email']);
     if (emailToCheck === users[UID]['email']) {
       return true;
     }
@@ -52,77 +53,26 @@ const generateRandomString = function() {
   return UID;
 };
 
-app.post("/login", (req, res) => {
-  // username = req.body.username;
-  // res.cookie('username', username);
+// finds object key by value
+const findKeyByValue = function(object, valueLookingFor) {
+  for (const key in object) {
+    if (object[key].email === valueLookingFor) {
+      return key;
+    }
+  }
+};
 
-
-  res.redirect("/login");
-});
-
-app.get("/login", (req, res) => {
-
-
-
-  let templateVars = { urls: urlDatabase, userObject: users[req.cookies['user_id']] };
-  res.render("login", templateVars);
-});
-
-
-app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
-  res.redirect("/urls");
-});
-
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
-app.get("/urls", (req, res) => {
-  // let myString = "hello world";
-  let templateVars = { urls: urlDatabase, userObject: users[req.cookies['user_id']] };
-  res.render("urls_index", templateVars);
-});
-
-app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  let newKey = generateRandomString();
-  // urlDatabase[generateRandomString()] = req.body;
-  urlDatabase[newKey] = req.body.longURL;
-  // console.log(urlDatabase[newKey]);
-  res.redirect("/urls/" + newKey);         // Respond with 'Ok' (we will replace this)
-});
-
-app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-  // req.params.shortURL =;
-  res.redirect("/urls");
-  // res.redirect("/urls/:shortURL");
-});
-
-app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+//---------- Debug JSON Pages -------------
+// users page intended for debug purposes
+app.get('/users', (req, res) => {
+  res.json(users);
 });
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
-app.get("/urls/new", (req, res) => {
-  let templateVars = { userObject: users[req.cookies['user_id']] };
-
-  res.render("urls_new", templateVars);
-});
-
-app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], userObject: users[req.cookies['user_id']] };
-  res.render("urls_show", templateVars);
-});
+//-------------- Register ------------------
 
 app.post("/register", (req, res) => {
   if (req.body['email'] === "" || req.body['password'] === "") {
@@ -143,16 +93,99 @@ app.post("/register", (req, res) => {
   let newUID = generateRandomString();
   users[newUID] = { id: newUID, email: req.body['email'], password: req.body['password'] };
   res.cookie('user_id', newUID);
-  // res.cookie(newUID, users[newUID]);
   res.redirect('/urls');
 });
+
 
 app.get("/register", (req, res) => {
   let templateVars = { email: req.cookies['email'], password: req.cookies['password'], userObject: users[req.cookies['user_id']]  };
   res.render("register", templateVars);
 });
 
-// app.post("/login");
+
+
+//------------- Login -----------------
+
+app.post("/login", (req, res) => {
+  if (checkIfEmailExists(req.body.email)) {
+    // console.log(req.body.email);
+    // console.log("email does exist!");
+    // console.log("key of email...?: ", findKeyByValue(users, req.body.email));
+    // console.log(users[findKeyByValue(users, req.body.email)].password)
+    // console.log("password entered by user: ", req.body.password)
+    if (users[findKeyByValue(users, req.body.email)].password === req.body.password) {
+      res.cookie('user_id', findKeyByValue(users, req.body.email));
+    } else {
+      res.statusCode = 403;
+      res.end("403 Password does not match what we have in our system! Try again or reset!");
+      return;
+    }
+  }
+  // else {
+  //   console.log("this email does NOT exist");
+  // }
+
+  if (!checkIfEmailExists(req.body.email)) {
+    // res.status(400).send("400 User already exists!");
+    res.statusCode = 403;
+    res.end("403 No account associated with this email, try again or register a new account!");
+    return;
+  }
+
+  res.redirect("/urls");
+});
+
+app.get("/login", (req, res) => {
+  let templateVars = { urls: urlDatabase, userObject: users[req.cookies['user_id']] };
+  res.render("login", templateVars);
+});
+
+//------------ Logout ----------
+
+app.post("/logout", (req, res) => {
+  res.clearCookie('user_id');
+  res.redirect("/urls");
+});
+
+app.get("/urls", (req, res) => {
+  // let myString = "hello world";
+  let templateVars = { urls: urlDatabase, userObject: users[req.cookies['user_id']] };
+  res.render("urls_index", templateVars);
+});
+
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  let newKey = generateRandomString();
+  // urlDatabase[generateRandomString()] = req.body;
+  urlDatabase[newKey] = req.body.longURL;
+  // console.log(urlDatabase[newKey]);
+  res.redirect("/urls/" + newKey);
+});
+
+app.post("/urls/:shortURL", (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  res.redirect("/urls");
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls");
+});
+
+
+
+
+app.get("/urls/new", (req, res) => {
+  let templateVars = { userObject: users[req.cookies['user_id']] };
+
+  res.render("urls_new", templateVars);
+});
+
+app.get("/urls/:shortURL", (req, res) => {
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], userObject: users[req.cookies['user_id']] };
+  res.render("urls_show", templateVars);
+});
+
 
 app.get("/u/:shortURL", (req, res) => {
   // let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
@@ -163,7 +196,19 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 
+// deprecated - delete?
+// app.get("/", (req, res) => {
+//   res.send("Hello!");
+// });
 
+
+// removed due to it not being used
+// app.get("/hello", (req, res) => {
+//   res.send("<html><body>Hello <b>World</b></body></html>\n");
+// });
+
+
+// Listening on PORT (variable set at top)
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
