@@ -64,8 +64,6 @@ const findKeyByEmailValue = function(object, valueLookingFor) {
   }
 };
 
-
-
 //---------- Debug JSON Pages -------------
 // users page intended for debug purposes
 app.get('/users', (req, res) => {
