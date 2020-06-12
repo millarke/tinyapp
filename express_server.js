@@ -54,13 +54,16 @@ const generateRandomString = function() {
 };
 
 // finds object key by value
-const findKeyByValue = function(object, valueLookingFor) {
+// TODO: accidentally hardcoded email into this
+const findKeyByEmailValue = function(object, valueLookingFor) {
   for (const key in object) {
     if (object[key].email === valueLookingFor) {
       return key;
     }
   }
 };
+
+
 
 //---------- Debug JSON Pages -------------
 // users page intended for debug purposes
@@ -105,13 +108,8 @@ app.get("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   if (checkIfEmailExists(req.body.email)) {
-    // console.log(req.body.email);
-    // console.log("email does exist!");
-    // console.log("key of email...?: ", findKeyByValue(users, req.body.email));
-    // console.log(users[findKeyByValue(users, req.body.email)].password)
-    // console.log("password entered by user: ", req.body.password)
-    if (users[findKeyByValue(users, req.body.email)].password === req.body.password) {
-      res.cookie('user_id', findKeyByValue(users, req.body.email));
+    if (users[findKeyByEmailValue(users, req.body.email)].password === req.body.password) {
+      res.cookie('user_id', findKeyByEmailValue(users, req.body.email));
     } else {
       res.statusCode = 403;
       res.end("403 Password does not match what we have in our system! Try again or reset!");
@@ -145,8 +143,25 @@ app.post("/logout", (req, res) => {
 //------------ URLS --------------
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase, userObject: users[req.cookies['user_id']] };
-  res.render("urls_index", templateVars);
+  
+  if (req.cookies['user_id']) {
+    const filteredURLdatabaseByUser = {};
+    for (let eachShortURL in urlDatabase) {
+      // if (users[req.cookies['user_id'] === urlDatabase[eachShortURL][users[req.cookies['user_id']) {
+      console.log(users[req.cookies['user_id']], urlDatabase[eachShortURL].userID);
+      if (req.cookies['user_id'] === urlDatabase[eachShortURL].userID) {
+        filteredURLdatabaseByUser[eachShortURL] = urlDatabase[eachShortURL];
+      }
+    }
+
+    // check currently logged in users id and use it to filter out the urlDatabase
+    let templateVars = { urls: filteredURLdatabaseByUser, userObject: users[req.cookies['user_id']] };
+    res.render("urls_index", templateVars);
+  } else {
+    // TODO: make this a real page
+    res.send("Log in or Register!");
+    // res.render("login", templateVars);
+  }
 });
 
 app.post("/urls", (req, res) => {
@@ -177,13 +192,43 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userObject: users[req.cookies['user_id']] };
-  res.render("urls_show", templateVars);
+  
+  if (req.cookies['user_id']) {
+    console.log("req.params.shortURL: ", req.params.shortURL);
+    console.log("urlDatabase[req.params.shortURL]: ", urlDatabase[req.params.shortURL]);
+
+    if (req.cookies['user_id'] === urlDatabase[req.params.shortURL].userID) {
+      let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userObject: users[req.cookies['user_id']] };
+      res.render("urls_show", templateVars);
+    } else {
+      res.send("You do not have permission to view this page >:(");
+    }
+    // wrong place??????-----------------
+
+    // check currently logged in users id and use it to filter out the urlDatabase
+    // let templateVars = { urls: filteredURLdatabaseByUser, userObject: users[req.cookies['user_id']] };
+    // res.render("urls_index", templateVars);
+  
+  } else {
+    // TODO: make this a real page
+    res.send("Log in or Register!");
+    // res.render("login", templateVars);
+  }
 });
 
+// app.get("/urls/:shortURL", (req, res) => {
+//   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: username };
+//   res.render("urls_show", templateVars);
+// });
+
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL].longURL;
-  res.redirect("/urls");
+  // TODO: could check to see if url even exists (truthy)
+  if (req.cookies['user_id'] === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
+  } else {
+    res.send("Only the user that created this shortURL may delete it!");
+  }
 });
 
 //------- Redirect Link ----------
@@ -195,14 +240,9 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(urlDatabase[UID].longURL);         // Respond with 'Ok' (we will replace this)
 });
 
-// deprecated - delete?
+// maybe redirect to /urls
 // app.get("/", (req, res) => {
 //   res.send("Hello!");
-// });
-
-// removed due to it not being used
-// app.get("/hello", (req, res) => {
-//   res.send("<html><body>Hello <b>World</b></body></html>\n");
 // });
 
 // Listening on PORT (variable set at top)
