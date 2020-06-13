@@ -2,9 +2,6 @@
 // checks to see if email exists
 const checkIfEmailExists = function(emailToCheck, usersObj) {
   for (let UID in usersObj) {
-    console.log("usersObj: ", usersObj);
-    console.log("usersObj[UID]: ", usersObj[UID]);
-    console.log("usersObj[UID]['email']: ", usersObj[UID]['email']);
     if (emailToCheck === usersObj[UID]['email']) {
       return true;
     }
@@ -23,13 +20,10 @@ const generateRandomString = function() {
 };
 
 // finds object key by value
-// TODO: accidentally hardcoded email into this
 const getUserByEmail = function(object, valueLookingFor) {
   for (const key in object) {
     if (object[key].email === valueLookingFor) {
-      // console.log("object.key: ", object[key]);
       return object[key];
-      // maybe users = object key and then return users?
     }
   }
   return false;
