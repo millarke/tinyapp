@@ -4,6 +4,7 @@ const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080; // default port 8080
+const { checkIfEmailExists, generateRandomString, findKeyByEmailValue } = require('./helpers');
 
 // needs to come before all the routes
 const bodyParser = require("body-parser");
@@ -41,37 +42,6 @@ const users = {
 //---------- Helper Functions -----------
 // should I move this to a new file?
 
-// checks to see if email exists
-const checkIfEmailExists = function(emailToCheck) {
-  for (let UID in users) {
-    if (emailToCheck === users[UID]['email']) {
-      return true;
-    }
-  }
-  return false;
-};
-
-// generates an alphanumeric string 6 characters long
-const generateRandomString = function() {
-  const alphaNumericString = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let UID = '';
-  for (let i = 0; i < 6; i++) {
-    UID = UID + alphaNumericString[Math.floor(Math.random() * (61 - 0) + 0)];
-  }
-  return UID;
-};
-
-// finds object key by value
-// TODO: accidentally hardcoded email into this
-const findKeyByEmailValue = function(object, valueLookingFor) {
-  for (const key in object) {
-    if (object[key].email === valueLookingFor) {
-      // console.log("object.key: ", object[key]);
-      return object[key];
-      // maybe users = object key and then return users?
-    }
-  }
-};
 
 //---------- Debug JSON Pages -------------
 // users page intended for debug purposes
@@ -92,7 +62,7 @@ app.post("/register", (req, res) => {
     // res.status(400).send("400 Missing Info");
     return;
   }
-  const doesEmailExist = checkIfEmailExists(req.body['email']);
+  const doesEmailExist = checkIfEmailExists(req.body['email'], users);
 
   if (doesEmailExist) {
     // res.status(400).send("400 User already exists!");
@@ -118,7 +88,7 @@ app.get("/register", (req, res) => {
 //------------- Login -----------------
 
 app.post("/login", (req, res) => {
-  if (checkIfEmailExists(req.body.email)) {
+  if (checkIfEmailExists(req.body.email, users)) {
     // if (users[findKeyByEmailValue(users, req.body.email)].password === bcrypt.compareSync(req.body.password, 10)) {
     if (bcrypt.compareSync(req.body.password, findKeyByEmailValue(users, req.body.email).password)) {
       req.session.user_id = findKeyByEmailValue(users, req.body.email).id;
@@ -129,7 +99,7 @@ app.post("/login", (req, res) => {
     }
   }
 
-  if (!checkIfEmailExists(req.body.email)) {
+  if (!checkIfEmailExists(req.body.email, users)) {
     // res.status(400).send("400 User already exists!");
     res.statusCode = 403;
     res.end("403 No account associated with this email, try again or register a new account!");
