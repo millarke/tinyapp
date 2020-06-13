@@ -38,13 +38,14 @@ const users = {
 //-------------- Register ------------------
 
 app.post("/register", (req, res) => {
+  // checking to see whether or not either field was left empty
   if (req.body['email'] === "" || req.body['password'] === "") {
     res.statusCode = 400;
     res.end("400 Missing Email");
     return;
   }
   const doesEmailExist = checkIfEmailExists(req.body['email'], users);
-
+  // if user tries to register when the email already exists
   if (doesEmailExist) {
     res.statusCode = 400;
     res.end("400 User already exists");
@@ -66,6 +67,7 @@ app.get("/register", (req, res) => {
 //------------- Login -----------------
 
 app.post("/login", (req, res) => {
+  //if email exists then we check the hashed password to see if that matches as well. if both match, user is logged in and redirected to /urls
   if (checkIfEmailExists(req.body.email, users)) {
     if (bcrypt.compareSync(req.body.password, getUserByEmail(users, req.body.email).password)) {
       req.session.user_id = getUserByEmail(users, req.body.email).id;
@@ -100,6 +102,7 @@ app.post("/logout", (req, res) => {
 //------------ URLS --------------
 
 app.get("/urls", (req, res) => {
+  // check currently logged in users id and use it to filter out the urlDatabase
   if (req.session.user_id) {
     const filteredURLdatabaseByUser = {};
     for (let eachShortURL in urlDatabase) {
@@ -107,8 +110,7 @@ app.get("/urls", (req, res) => {
         filteredURLdatabaseByUser[eachShortURL] = urlDatabase[eachShortURL];
       }
     }
-
-    // check currently logged in users id and use it to filter out the urlDatabase
+    
     let templateVars = { urls: filteredURLdatabaseByUser, userObject: users[req.session.user_id] };
     res.render("urls_index", templateVars);
   } else {
@@ -117,13 +119,14 @@ app.get("/urls", (req, res) => {
   }
 });
 
+// when creating a new short url we generate a random string and create an object
 app.post("/urls", (req, res) => {
   let newKey = generateRandomString();
   urlDatabase[newKey] = { longURL: req.body.longURL, userID: req.session.user_id };
   res.redirect("/urls/" + newKey);
 });
 
-//-------- Create New ShortURL ---------
+//-------- Create New ShortURL Page ---------
 
 app.get("/urls/new", (req, res) => {
   let templateVars = { userObject: users[req.session.user_id] };
@@ -159,7 +162,6 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  // TODO: could check to see if url even exists (truthy)
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
     res.redirect("/urls");
