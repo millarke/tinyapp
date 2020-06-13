@@ -66,7 +66,9 @@ const generateRandomString = function() {
 const findKeyByEmailValue = function(object, valueLookingFor) {
   for (const key in object) {
     if (object[key].email === valueLookingFor) {
-      return key;
+      // console.log("object.key: ", object[key]);
+      return object[key];
+      // maybe users = object key and then return users?
     }
   }
 };
@@ -118,8 +120,8 @@ app.get("/register", (req, res) => {
 app.post("/login", (req, res) => {
   if (checkIfEmailExists(req.body.email)) {
     // if (users[findKeyByEmailValue(users, req.body.email)].password === bcrypt.compareSync(req.body.password, 10)) {
-    if (bcrypt.compareSync(req.body.password, users[findKeyByEmailValue(users, req.body.email)].password)) {
-      req.session.user_id = findKeyByEmailValue(users, req.body.email);
+    if (bcrypt.compareSync(req.body.password, findKeyByEmailValue(users, req.body.email).password)) {
+      req.session.user_id = findKeyByEmailValue(users, req.body.email).id;
     } else {
       res.statusCode = 403;
       res.end("403 Password does not match what we have in our system! Try again or reset!");
@@ -238,6 +240,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //------- Redirect Link ----------
 
+
+// TODO: see if i need to block this from being accessed by whoever isn't logged into the right account whoops
 app.get("/u/:shortURL", (req, res) => {
   // let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   // res.render("urls_show", templateVars);
