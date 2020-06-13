@@ -24,7 +24,7 @@ const generateRandomString = function() {
 
 // finds object key by value
 // TODO: accidentally hardcoded email into this
-const findKeyByEmailValue = function(object, valueLookingFor) {
+const getUserByEmail = function(object, valueLookingFor) {
   for (const key in object) {
     if (object[key].email === valueLookingFor) {
       // console.log("object.key: ", object[key]);
@@ -32,6 +32,7 @@ const findKeyByEmailValue = function(object, valueLookingFor) {
       // maybe users = object key and then return users?
     }
   }
+  return false;
 };
 
-module.exports = { checkIfEmailExists, generateRandomString, findKeyByEmailValue };
+module.exports = { checkIfEmailExists, generateRandomString, getUserByEmail };

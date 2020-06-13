@@ -4,7 +4,7 @@ const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080; // default port 8080
-const { checkIfEmailExists, generateRandomString, findKeyByEmailValue } = require('./helpers');
+const { checkIfEmailExists, generateRandomString, getUserByEmail } = require('./helpers');
 
 // needs to come before all the routes
 const bodyParser = require("body-parser");
@@ -36,7 +36,12 @@ const users = {
     id: "user2RandomID",
     email: "user2@example.com",
     password: bcrypt.hashSync("dishwasher-funk", 10)
-  }
+  },
+  "keith": {
+    id: "keith",
+    email: "keith@keith.com",
+    password: bcrypt.hashSync("a", 10)
+  },
 };
 
 //---------- Helper Functions -----------
@@ -89,9 +94,9 @@ app.get("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   if (checkIfEmailExists(req.body.email, users)) {
-    // if (users[findKeyByEmailValue(users, req.body.email)].password === bcrypt.compareSync(req.body.password, 10)) {
-    if (bcrypt.compareSync(req.body.password, findKeyByEmailValue(users, req.body.email).password)) {
-      req.session.user_id = findKeyByEmailValue(users, req.body.email).id;
+    // if (users[getUserByEmail(users, req.body.email)].password === bcrypt.compareSync(req.body.password, 10)) {
+    if (bcrypt.compareSync(req.body.password, getUserByEmail(users, req.body.email).password)) {
+      req.session.user_id = getUserByEmail(users, req.body.email).id;
     } else {
       res.statusCode = 403;
       res.end("403 Password does not match what we have in our system! Try again or reset!");
