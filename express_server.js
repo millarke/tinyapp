@@ -174,11 +174,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   const UID = req.params.shortURL;
-  if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
-    res.redirect(urlDatabase[UID].longURL);
-  } else {
-    res.send("You do not have permission to view this page >:(");
-  }
+  res.redirect(urlDatabase[UID].longURL);
 });
 
 //---------- Root -------------
